@@ -1,0 +1,16 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools"]
+
+[project]
+name = "PyTskMge"
+version = "1.0.0"
+authors = [
+    {name = "Dasupergrass"},
+]
+description = "Python task management project"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pyside6"
+]
