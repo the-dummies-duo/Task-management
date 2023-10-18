@@ -1,0 +1,6 @@
+{
+    "files": [
+        "./PyTskMge/__main__.py",
+        "./PyTskMge/form.ui"
+    ]
+}

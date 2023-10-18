@@ -10,10 +10,12 @@ class QtApp:
         self.window = QMainWindow()
         self.taskmgr = TaskManager(self.window)
         self.window.closeEvent = self.close
-        self.sumgr = SetupManager(self,self.menubar)
+        self.sumgr = SetupManager(self)
+        self.terminating = False
     def setupMenuBar(self):
         self.window.resize(800,600)
         self.menubar = QMenuBar()
+        self.sumgr.update(self.menubar)
         self.sumgr.taskmenu_setup()
         self.window.setMenuBar(self.menubar)
     def setupLayout(self):
@@ -23,8 +25,12 @@ class QtApp:
         self.setupLayout()
         self.window.show()
     def close(self,event:QCloseEvent|None=None):
+        if self.terminating:
+            return
         print('Preparing for termination')
+        self.terminating = True
         if not self.taskmgr.terminate():
+            self.terminating = False
             return
         self.window.close()
     def run(self):
