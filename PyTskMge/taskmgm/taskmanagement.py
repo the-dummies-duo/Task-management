@@ -10,5 +10,5 @@ class TaskManager:
         self.tasks = json.load(open(abspath('./PyTskMge/data/tasks.json')))
     def update(self,window) -> None:
         self.window = window
-    def terminate(self):
-        ...
+    def terminate(self) -> bool:
+        return True
