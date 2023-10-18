@@ -14,11 +14,13 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-private slots:
-    void on_pushButton_clicked();
-
+    static MainWindow *GetMainWindow();
 private:
     Ui::MainWindow *ui;
 };
+#ifdef _WIN32
+std::string WinExePath();
+#else
+std::string getExecutablePath();
+#endif
 #endif // MAINWINDOW_H

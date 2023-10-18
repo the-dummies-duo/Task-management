@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(Task-management VERSION 0.1 LANGUAGES CXX)
-
+include_directories(${CMAKE_SOURCE_DIR}/include)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -27,6 +27,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         actions.h actions.cpp
+
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Task-management APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -51,7 +54,6 @@ else()
 endif()
 
 target_link_libraries(Task-management PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
@@ -76,3 +78,14 @@ install(TARGETS Task-management
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(Task-management)
 endif()
+
+#set(PYTHON_SCRIPT_SOURCE ${CMAKE_SOURCE_DIR}/script.py)
+#set(PYTHON_SCRIPT_OUTPUT ${CMAKE_BINARY_DIR}/script.py)
+#configure_file(${PYTHON_SCRIPT_SOURCE} ${PYTHON_SCRIPT_OUTPUT} COPYONLY)
+
+#set(REQUIREMENTS_FILE_SOURCE ${CMAKE_SOURCE_DIR}/requirements.txt)
+#set(REQUIREMENTS_FILE_OUTPUT ${CMAKE_BINARY_DIR}/requirements.txt)
+#configure_file(${REQUIREMENTS_FILE_SOURCE} ${REQUIREMENTS_FILE_OUTPUT} COPYONLY)
+
+#target_sources(Task-management PRIVATE ${PYTHON_SCRIPT_OUTPUT} ${REQUIREMENTS_FILE_OUTPUT})
+
