@@ -27,6 +27,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         actions.h actions.cpp
+        newtask.h newtask.cpp newtask.ui
+        debug.h
+        listwidget.h listwidget.cpp
+        taskitem.h taskitem.cpp
+
+
 
 
 

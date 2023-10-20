@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+#include "debug.h"
+#include "listwidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -15,7 +18,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     static MainWindow *GetMainWindow();
+    void openNewTask();
+    void load();
 private:
+    listwidget* tasks;
     Ui::MainWindow *ui;
 };
 #ifdef _WIN32

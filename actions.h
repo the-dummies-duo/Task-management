@@ -1,11 +1,25 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
+#include "debug.h"
+
 #include <QObject>
 #include <QWidget>
 #include <QApplication>
 #include "mainwindow.h"
-#include <nlohmann/json.hpp>
+#include <iostream>
+#include <string>
+#ifdef _WIN32
+#define pathify(str) (str.replace(str.find('/'), 1, "\\"))
+#define CreateDirectoryFunc(path) CreateDirectory(path,NULL)
+#define GetExePath WinExePath
+#include <windows.h>
+#else
+#define pathify(str) str
+#define GetExePath getExecutablePath
+#include <sys/stat.h>
+#define CreateDirectoryFunc(path) mkdir(path,NULL)
+#endif
 
 class Actions : public QWidget
 {
@@ -15,7 +29,7 @@ public:
     static void action_Quit();
     static void action_GitHub();
     static void action_debug_text();
-    static void action_Save();
+    static void action_New();
 
 signals:
 

@@ -5,24 +5,26 @@
 #include <cstring>
 #include <locale>
 #include <codecvt>
-#include <QMainWindow>
+#include <fstream>
 
-#ifdef _WIN32
-#define pathify(str) (str.replace(str.find('/'), 1, "\\"))
-#define CreateDirectoryFunc(path) CreateDirectory(path,NULL)
-#define GetExePath WinExePath
-#include <windows.h>
-#else
-#define pathify(str) str
-#define GetExePath getExecutablePath
-#include <sys/stat.h>
-#define CreateDirectoryFunc(path) mkdir(path,NULL)
-#endif
+#include <QMainWindow>
+#include <QMessageBox>
+
+#include "actions.h"
+#include "listwidget.h"
+
+#define sconcat(a,b) a#b
+
+#include <nlohmann/json.hpp>
+
+using json=nlohmann::json;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    tasks = &listwidget::getInstance();
 }
 
 MainWindow::~MainWindow()
@@ -61,3 +63,35 @@ std::string getExecutablePath() {
     }
 }
 #endif
+void MainWindow::load(){
+    std::string path = GetExePath();
+    std::string datapath = "./data";
+    if (!(std::filesystem::exists(datapath) && std::filesystem::is_directory(datapath))){
+        if (std::filesystem::exists(datapath)){
+            if (!std::filesystem::remove(datapath)){
+                QMessageBox::warning(this,"Error",sconcat("Unable to remove file/directory ",datapath));
+            }
+        }
+        CreateDirectoryFunc(L"./data");
+    }
+    std::ifstream f("./data/data.json");
+    json j;
+    std::string line;
+    std::getline(f, line);
+    f.clear();
+    f.seekg(0);
+    if (line.empty()){
+        std::ofstream x("./data/data.json");
+        x << "{}" << std::endl;
+        x.close();
+    }
+    try{
+        f >> j;
+    }
+    catch(nlohmann::json_abi_v3_11_2::detail::parse_error){}
+
+    if (j.empty()){
+        j["tasks"] = json::array();
+    }
+    this->tasks->loadwidgets(j["tasks"]);
+}

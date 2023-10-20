@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>600</height>
+    <width>600</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Task management</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="test_label">
@@ -27,38 +27,28 @@
      <string>123</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="input1">
-    <property name="geometry">
-     <rect>
-      <x>3</x>
-      <y>-1</y>
-      <width>181</width>
-      <height>131</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="input2">
+   <widget class="QScrollArea" name="task_list">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>130</y>
-      <width>181</width>
-      <height>131</height>
+      <y>0</y>
+      <width>600</width>
+      <height>380</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QPushButton" name="SaveButton">
-    <property name="geometry">
-     <rect>
-      <x>670</x>
-      <y>430</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
+    <property name="widgetResizable">
+     <bool>true</bool>
     </property>
-    <property name="text">
-     <string>Save</string>
-    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>598</width>
+       <height>378</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -66,7 +56,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>801</width>
+     <width>600</width>
      <height>21</height>
     </rect>
    </property>
@@ -99,6 +89,9 @@
   <action name="action_New">
    <property name="text">
     <string>&amp;New...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="action_Quit">
