@@ -12,11 +12,9 @@
 #ifdef _WIN32
 #define pathify(str) (str.replace(str.find('/'), 1, "\\"))
 #define CreateDirectoryFunc(path) CreateDirectory(path,NULL)
-#define GetExePath WinExePath
 #include <windows.h>
 #else
 #define pathify(str) str
-#define GetExePath getExecutablePath
 #include <sys/stat.h>
 #define CreateDirectoryFunc(path) mkdir(path,NULL)
 #endif
@@ -28,7 +26,6 @@ public:
     explicit Actions(QWidget *parent = nullptr);
     static void action_Quit();
     static void action_GitHub();
-    static void action_debug_text();
     static void action_New();
 
 signals:

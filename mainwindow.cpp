@@ -9,9 +9,12 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QTimer>
+#include <QDir>
 
 #include "actions.h"
 #include "listwidget.h"
+#include "qabstractbutton.h"
 
 #define sconcat(a,b) a#b
 
@@ -25,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     tasks = &listwidget::getInstance();
+    setFixedSize(600,400);
 }
 
 MainWindow::~MainWindow()
@@ -42,46 +46,20 @@ std::string wstringToString(const std::wstring& wstr) {
     return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>{}.to_bytes(wstr);
 }
 
-#ifdef _WIN32
-std::string WinExePath() {
-    wchar_t buffer[MAX_PATH] = { 0 };
-    GetModuleFileName( NULL, buffer, MAX_PATH );
-    std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-    return wstringToString(std::wstring(buffer).substr(0, pos));
-}
-
-#else
-std::string getExecutablePath() {
-    char exePath[4096];  // Allocate a buffer to store the path
-    ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
-
-    if (len != -1) {
-        exePath[len] = '\0';  // Null-terminate the path
-        return std::string(exePath);
-    } else {
-        return ""; // Return an empty string on error
-    }
-}
-#endif
 void MainWindow::load(){
-    std::string path = GetExePath();
-    std::string datapath = "./data";
-    if (!(std::filesystem::exists(datapath) && std::filesystem::is_directory(datapath))){
-        if (std::filesystem::exists(datapath)){
-            if (!std::filesystem::remove(datapath)){
-                QMessageBox::warning(this,"Error",sconcat("Unable to remove file/directory ",datapath));
-            }
-        }
-        CreateDirectoryFunc(L"./data");
+    const std::string jsonpath = "./data/data.json";
+    QDir d("./data");
+    if (!d.exists()){
+        d.mkdir(".");
     }
-    std::ifstream f("./data/data.json");
+    std::ifstream f(jsonpath);
     json j;
     std::string line;
     std::getline(f, line);
     f.clear();
     f.seekg(0);
     if (line.empty()){
-        std::ofstream x("./data/data.json");
+        std::ofstream x(jsonpath);
         x << "{}" << std::endl;
         x.close();
     }
@@ -89,9 +67,73 @@ void MainWindow::load(){
         f >> j;
     }
     catch(nlohmann::json_abi_v3_11_2::detail::parse_error){}
-
+    f.close();
     if (j.empty()){
         j["tasks"] = json::array();
     }
-    this->tasks->loadwidgets(j["tasks"]);
+    timer = new QTimer();
+    timer->setInterval(5000);
+    QObject::connect(timer, &QTimer::timeout,this,[](){
+        //std::cout << "timer invoked" << std::endl;
+        const std::string jsonpath = "./data/data.json";
+        bool changed = false;
+        std::ifstream f(jsonpath);
+        json j;
+        f >> j;
+        f.close();
+        json temp = json(j);
+        int index = -1;
+        for (json& item : temp["tasks"]){
+            index++;
+            if (item["invoked"]){
+                continue;
+            }
+            time_t rem_t = item["reminder_date"];
+            if (rem_t == 0){
+                continue;
+            }
+            auto now = std::chrono::system_clock::now();
+            time_t now_ts = std::chrono::system_clock::to_time_t(now);
+            //std::cout << now_ts << " " << rem_t << std::endl;
+            if (now_ts >= rem_t){
+                QMessageBox box;
+                box.setWindowTitle(QString::fromStdString((std::string)item["title"]));
+                box.setText(QString::fromStdString((std::string)item["description"]));
+                box.addButton(QMessageBox::Ok);
+                box.addButton(QMessageBox::Ignore);
+                box.addButton("Delete task",QMessageBox::ButtonRole::ActionRole);
+                box.exec();
+                QAbstractButton* clickedButton = box.clickedButton();
+                if (clickedButton->text() == "OK"){
+                    item["invoked"] = true;
+                    changed = true;
+                }
+                else if (clickedButton->text() == "Delete task"){
+                    j["tasks"].erase(std::remove_if(j["tasks"].begin(), j["tasks"].end(), [&item](const json& item_) {
+                                         return item_ == item;
+                                    }), j["tasks"].end());
+                    changed = true;
+                }
+                else if (clickedButton->text() == "Ignore"){
+                    int index = std::find(j["tasks"].begin(),j["tasks"].end(),item) - j["tasks"].begin();
+                    j["tasks"][index]["reminder_date"] = now_ts+300;
+                    changed = true;
+                    std::cout << j["tasks"][index] << std::endl;
+                    std::cout << j["tasks"][index]["reminder_date"] << std::endl;
+
+                }
+            }
+
+        }
+        if(changed){
+            std::ofstream x(jsonpath,std::ios::out|std::ios::trunc);
+            //std::cout << j << std::endl;
+            x << j << std::endl;
+            //std::cout << j;
+            listwidget* tasks = &listwidget::getInstance();
+            tasks->loadwidgets(j);
+        }
+    });
+    timer->start();
+    this->tasks->loadwidgets(j);
 }

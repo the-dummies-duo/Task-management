@@ -29,11 +29,6 @@ void Actions::action_Quit(){
 void Actions::action_GitHub(){
     system("start https://github.com/the-dummies-duo/Python-task-management");
 }
-void Actions::action_debug_text(){
-    MainWindow* w =MainWindow::GetMainWindow();
-    QLabel* label = w->findChild<QLabel*>("test_label");
-    label->setText("Hello world");
-}
 void Actions::action_New(){
     newTask newtask;
     newtask.setModal(true);

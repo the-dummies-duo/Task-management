@@ -12,16 +12,19 @@
 #include <QCheckBox>
 #include <QDateTimeEdit>
 #include <QObject>
+#include <QUuid>
 
 #include <nlohmann/json.hpp>
 
 #define concat(a,b) a#b
 using json = nlohmann::json;
 
-newTask::newTask(QWidget *parent) :
+newTask::newTask(bool newtask,json* original,QWidget *parent) :
     QDialog(parent),
     ui(new Ui::newTask)
 {
+    this->newtask = newtask;
+    this->original = original;
     ui->setupUi(this);
     QCheckBox* cb = findChild<QCheckBox*>("remindercb");
     cb->setCheckState(Qt::CheckState::Checked);
@@ -45,15 +48,17 @@ void newTask::accept(){
     QPlainTextEdit* description = findChild<QPlainTextEdit*>("des_textedit");
     QString title_text = title->toPlainText();
     QString des_text = description->toPlainText();
-    std::string path = GetExePath();
-    std::string datapath = "./data";
-    if (!(std::filesystem::exists(datapath) && std::filesystem::is_directory(datapath))){
-        if (std::filesystem::exists(datapath)){
-            if (!std::filesystem::remove(datapath)){
-                QMessageBox::warning(this,"Error",concat("Unable to remove file/directory ",datapath));
+    const std::string path = QApplication::applicationDirPath().toStdString();
+    const std::string datapath = "./data";
+    if (newtask){
+        if (!(std::filesystem::exists(datapath) && std::filesystem::is_directory(datapath))){
+            if (std::filesystem::exists(datapath)){
+                if (!std::filesystem::remove(datapath)){
+                    QMessageBox::warning(this,"Error",concat("Unable to remove file/directory ",datapath));
+                }
             }
+            CreateDirectoryFunc(L"./data");
         }
-        CreateDirectoryFunc(L"./data");
     }
     std::ifstream f("./data/data.json");
     json j;
@@ -81,9 +86,11 @@ void newTask::accept(){
     if (j.empty()){
         j["tasks"] = json::array();
     }
+
     json taskobj;
     taskobj["title"] = title_text.toStdString();
     taskobj["description"] = des_text.toStdString();
+    taskobj["id"] = QUuid::createUuid().toString().toStdString();
     QCheckBox* cb = findChild<QCheckBox*>("remindercb");
     if (cb->isChecked()){
         QDateTimeEdit* dt = findChild<QDateTimeEdit*>("reminderdatetime");
@@ -93,12 +100,19 @@ void newTask::accept(){
     else{
         taskobj["reminder_date"] = 0;
     }
+    if (!newtask){
+        json original = *this->original;
+        j["tasks"].erase(std::remove_if(j["tasks"].begin(), j["tasks"].end(), [&original](const json& item_) {
+                             return item_ == original;
+                         }), j["tasks"].end());
+    }
+    taskobj["invoked"] = false;
     j["tasks"].push_back(taskobj);
     std::ofstream x("./data/data.json",std::ios::out|std::ios::trunc);
-    std::cout << j << std::endl;
+    //std::cout << j << std::endl;
     x << j << std::endl;
     listwidget* tasks = &listwidget::getInstance();
-    tasks->loadwidgets(j["tasks"]);
+    tasks->loadwidgets(j);
     QDialog::accept();
 }
 

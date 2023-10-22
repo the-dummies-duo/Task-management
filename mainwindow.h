@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 
 #include "debug.h"
 #include "listwidget.h"
@@ -23,6 +24,8 @@ public:
 private:
     listwidget* tasks;
     Ui::MainWindow *ui;
+    QTimer* timer;
+
 };
 #ifdef _WIN32
 std::string WinExePath();
