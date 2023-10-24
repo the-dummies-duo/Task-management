@@ -17,10 +17,6 @@
 
 #define sconcat(a,b) a#b
 
-#include <nlohmann/json.hpp>
-
-using json=nlohmann::json;
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
