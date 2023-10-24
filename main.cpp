@@ -1,15 +1,10 @@
 #include "mainwindow.h"
 #include "actions.h"
-
 #include <QApplication>
-#include <QLocale>
-#include <QTranslator>
+#include <QPushButton>
 #include <QAction>
 #include <QObject>
-#include <QPushButton>
-#include <string>
-#include <locale>
-#include <iostream>
+#include "includes.h"
 
 int main(int argc, char *argv[])
 {

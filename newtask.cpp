@@ -3,23 +3,14 @@
 #include "mainwindow.h"
 #include "actions.h"
 #include "listwidget.h"
+#include "manager.h"
 
-#include <fstream>
+#include "includes.h"
 
-#include <QPlainTextEdit>
-#include <QMessageBox>
-#include <QObject>
-#include <QCheckBox>
-#include <QDateTimeEdit>
-#include <QObject>
-#include <QUuid>
-
-#include <nlohmann/json.hpp>
 
 #define concat(a,b) a#b
-using json = nlohmann::json;
 
-newTask::newTask(bool newtask,json* original,QWidget *parent) :
+newTask::newTask(bool newtask,QJsonObject* original,QWidget *parent) :
     QDialog(parent),
     ui(new Ui::newTask)
 {
@@ -37,6 +28,20 @@ newTask::newTask(bool newtask,json* original,QWidget *parent) :
                 dt->setEnabled(false);
             }
     });
+    QPushButton* del = findChild<QPushButton*>("deletebutton");
+    if (!newtask){
+        del->setEnabled(true);
+        QObject::connect(del,&QPushButton::clicked,this,[this](){this->delete_();});
+    }
+    if (original && (*original)["reminder_date"].toInt() != 0){
+        dt->setDateTime(QDateTime::fromSecsSinceEpoch((*original)["reminder_date"].toInt()));
+    }
+    if (original){
+        QPlainTextEdit* title = findChild<QPlainTextEdit*>("title_textedit");
+        QPlainTextEdit* description = findChild<QPlainTextEdit*>("des_textedit");
+        title->setPlainText((*original)["title"].toString());
+        description->setPlainText((*original)["description"].toString());
+    }
 }
 
 newTask::~newTask()
@@ -50,47 +55,18 @@ void newTask::accept(){
     QString des_text = description->toPlainText();
     const std::string path = QApplication::applicationDirPath().toStdString();
     const std::string datapath = "./data";
-    if (newtask){
-        if (!(std::filesystem::exists(datapath) && std::filesystem::is_directory(datapath))){
-            if (std::filesystem::exists(datapath)){
-                if (!std::filesystem::remove(datapath)){
-                    QMessageBox::warning(this,"Error",concat("Unable to remove file/directory ",datapath));
-                }
-            }
-            CreateDirectoryFunc(L"./data");
-        }
-    }
-    std::ifstream f("./data/data.json");
-    json j;
-    std::string line;
-    std::getline(f, line);
-    f.clear();
-    f.seekg(0);
-    if (line.empty()){
-        std::ofstream x("./data/data.json");
-        x << "{}" << std::endl;
-        x.close();
-    }
-    try{
-        f >> j;
-    }
-    catch(nlohmann::json_abi_v3_11_2::detail::parse_error){
-#if _DEBUG
-        std::cout << "error encountered, handling it" <<std::endl;
-        std::getline(f, line);
-        std::cout << line << std::endl;
-#endif
-        f >> j;
-    }
 
+    const std::string jsonpath = "./data/data.json";
+    auto j = manager::readdatajson();
     if (j.empty()){
-        j["tasks"] = json::array();
+        j["tasks"] = QJsonArray();
     }
 
-    json taskobj;
-    taskobj["title"] = title_text.toStdString();
-    taskobj["description"] = des_text.toStdString();
-    taskobj["id"] = QUuid::createUuid().toString().toStdString();
+    QJsonObject taskobj;;
+    QJsonArray tasksarray = j["tasks"].toArray();
+    taskobj["title"] = title_text;
+    taskobj["description"] = des_text;
+    taskobj["id"] = QUuid::createUuid().toString();
     QCheckBox* cb = findChild<QCheckBox*>("remindercb");
     if (cb->isChecked()){
         QDateTimeEdit* dt = findChild<QDateTimeEdit*>("reminderdatetime");
@@ -101,16 +77,14 @@ void newTask::accept(){
         taskobj["reminder_date"] = 0;
     }
     if (!newtask){
-        json original = *this->original;
-        j["tasks"].erase(std::remove_if(j["tasks"].begin(), j["tasks"].end(), [&original](const json& item_) {
-                             return item_ == original;
-                         }), j["tasks"].end());
+        QJsonObject original = *this->original;
+        tasksarray.erase(std::find(tasksarray.begin(), tasksarray.end(), original));
+        j["tasks"] = tasksarray;
     }
     taskobj["invoked"] = false;
-    j["tasks"].push_back(taskobj);
-    std::ofstream x("./data/data.json",std::ios::out|std::ios::trunc);
-    //std::cout << j << std::endl;
-    x << j << std::endl;
+    tasksarray.append(taskobj);
+    j["tasks"] = tasksarray;
+    manager::writejson(j);
     listwidget* tasks = &listwidget::getInstance();
     tasks->loadwidgets(j);
     QDialog::accept();
@@ -118,4 +92,44 @@ void newTask::accept(){
 
 void newTask::reject(){
     QDialog::reject();
+}
+void newTask::delete_(){
+    QPlainTextEdit* title = findChild<QPlainTextEdit*>("title_textedit");
+    QPlainTextEdit* description = findChild<QPlainTextEdit*>("des_textedit");
+    QString title_text = title->toPlainText();
+    QString des_text = description->toPlainText();
+    const std::string path = QApplication::applicationDirPath().toStdString();
+    const std::string datapath = "./data";
+
+    const std::string jsonpath = "./data/data.json";
+    auto j = manager::readdatajson();
+    if (j.empty()){
+        j["tasks"] = QJsonArray();
+    }
+
+    QJsonObject taskobj;;
+    QJsonArray tasksarray = j["tasks"].toArray();
+    taskobj["title"] = title_text;
+    taskobj["description"] = des_text;
+    taskobj["id"] = QUuid::createUuid().toString();
+    QCheckBox* cb = findChild<QCheckBox*>("remindercb");
+    if (cb->isChecked()){
+        QDateTimeEdit* dt = findChild<QDateTimeEdit*>("reminderdatetime");
+        time_t t = dt->dateTime().toSecsSinceEpoch();
+        taskobj["reminder_date"] = t;
+    }
+    else{
+        taskobj["reminder_date"] = 0;
+    }
+    if (!newtask){
+        QJsonObject original = *this->original;
+        tasksarray.erase(std::find(tasksarray.begin(), tasksarray.end(), original));
+        j["tasks"] = tasksarray;
+    }
+    taskobj["invoked"] = false;
+    j["tasks"] = tasksarray;
+    manager::writejson(j);
+    listwidget* tasks = &listwidget::getInstance();
+    tasks->loadwidgets(j);
+    QDialog::accept();
 }

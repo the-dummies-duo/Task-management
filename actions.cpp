@@ -1,22 +1,7 @@
 #include "actions.h"
 #include "mainwindow.h"
 #include "newtask.h"
-
-#include <QApplication>
-#include <QLabel>
-#include <QTextEdit>
-
-#include <stdlib.h>
-#include <iostream>
-#include <string>
-#include <filesystem>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <typeinfo>
-#include <locale>
-
-#include <QMessageBox>
+#include "includes.h"
 
 Actions::Actions(QWidget *parent)
     : QWidget{parent}

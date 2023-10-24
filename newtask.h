@@ -1,11 +1,9 @@
 #ifndef NEWTASK_H
 #define NEWTASK_H
 
-#include <QDialog>
+#include "includes.h"
 
 #include "debug.h"
-#include <nlohmann/json.hpp>
-using json=nlohmann::json;
 
 namespace Ui {
 class newTask;
@@ -16,14 +14,16 @@ class newTask : public QDialog
     Q_OBJECT
 
 public:
-    explicit newTask(bool newtask = true,json* original=nullptr,QWidget *parent = nullptr);
+    explicit newTask(bool newtask = true,QJsonObject* original=nullptr,QWidget *parent = nullptr);
     ~newTask();
     void accept();
     void reject();
+private slots:
+    void delete_();
 
 private:
     bool newtask;
-    json *original;
+    QJsonObject *original;
     Ui::newTask *ui;
 };
 
