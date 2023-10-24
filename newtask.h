@@ -3,7 +3,6 @@
 
 #include "includes.h"
 
-#include "debug.h"
 
 namespace Ui {
 class newTask;

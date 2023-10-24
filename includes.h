@@ -1,6 +1,5 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
-#include "debug.h"
 
 #include <QObject>
 #include <QWidget>
