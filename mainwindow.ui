@@ -62,7 +62,6 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="action_About"/>
     <addaction name="actionOur_GitHub"/>
    </widget>
    <addaction name="menu_Tasks"/>
