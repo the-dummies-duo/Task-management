@@ -37,6 +37,7 @@
 #include <QDateTimeEdit>
 #include <QAbstractButton>
 #include <QDateTime>
+#include <QCloseEvent>
 
 #include <QMessageBox>
 #ifdef _WIN32

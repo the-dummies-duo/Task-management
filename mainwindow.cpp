@@ -14,6 +14,7 @@
 
 #include "actions.h"
 #include "listwidget.h"
+#include "manager.h"
 
 #define sconcat(a,b) a#b
 
@@ -60,16 +61,8 @@ void MainWindow::load(){
     timer = new QTimer();
     timer->setInterval(5000);
     QObject::connect(timer, &QTimer::timeout,this,[](){
-        const QString jsonpath_q = "./data/data.json";
-
         bool changed = false;
-        QFile jsonfile(jsonpath_q);
-        if (!jsonfile.open(QIODevice::ReadWrite)){
-            qWarning("Couldn't open json file at ./data/data.json");
-        }
-        QByteArray data = jsonfile.readAll();
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        QJsonObject j = doc.object();
+        QJsonObject j = manager::readdatajson();
         QJsonObject temp = QJsonObject(j);
         int index = -1;
         for (const auto& item_ : temp["tasks"].toArray()){
@@ -92,15 +85,24 @@ void MainWindow::load(){
                 box.addButton(QMessageBox::Ok);
                 box.addButton(QMessageBox::Ignore);
                 box.addButton("Delete task",QMessageBox::ButtonRole::ActionRole);
+                box.setWindowFlags(box.windowFlags() | Qt::WindowStaysOnTopHint);
                 box.exec();
                 QAbstractButton* clickedButton = box.clickedButton();
                 QJsonArray tasks = j["tasks"].toArray();
                 if (clickedButton->text() == "OK"){
                     QJsonObject task = tasks[index].toObject();
-                    task["invoked"] = true;
-                    changed = true;
-                    tasks[index] = task;
-                    j["tasks"] = tasks;
+                    if (!task["daily"].toBool()){
+                        task["invoked"] = true;
+                        changed = true;
+                        tasks[index] = task;
+                        j["tasks"] = tasks;
+                    }
+                    else {
+                        task["reminder_date"]  = task["reminder_date"].toInt() + 86400;
+                        tasks[index] = task;
+                        j["tasks"] = tasks;
+                        changed = true;
+                    }
                 }
                 else if (clickedButton->text() == "Delete task"){
                     tasks.erase(std::find_if(tasks.begin(), tasks.end(), [&item](const auto& item__) {

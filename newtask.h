@@ -18,7 +18,7 @@ public:
     void accept();
     void reject();
 private slots:
-    void delete_();
+    void handle(bool delete_ = false);
 
 private:
     bool newtask;

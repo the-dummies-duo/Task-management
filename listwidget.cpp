@@ -49,14 +49,9 @@ void listwidget::loadwidgets(QJsonObject& jsonlist){
         }
         item->setData(Qt::DisplayRole,QVariant(title+spaces+QString::fromStdString(reminder_text)));
         item->setData(Qt::ToolTipRole,QVariant(description));
-        QJsonArray tasks = jsonlist["tasks"].toArray();
-        int index = std::find(tasks.begin(),tasks.end(),json_item) - tasks.begin();
 
-
-
-        //item->setData(Qt::UserRole,QVariant(reinterpret_cast<uintptr_t>(reinterpret_cast<json*>(mainlist))));
         item->setData(Qt::UserRole+2,QVariant(id));
-        item->setData(Qt::UserRole+1,QVariant(index));
+        item->setData(Qt::UserRole+1,QVariant(json_item));
         addItem(item);
     }
     if (!connected){
@@ -68,14 +63,9 @@ listwidget& listwidget::getInstance(){
     static listwidget instance;
     return instance;
 }
-void listwidget::handleclick(QListWidgetItem* item){/*
-TODO: Try to make this work
-    json originaljson = (*reinterpret_cast<json*>(item->data(Qt::UserRole).data()))
-    if (originaljson){
-
-    }*/
-    int index = *(int*)item->data(Qt::UserRole+1).data();
-    QString id = (*(QString*)item->data(Qt::UserRole+2).data());
+void listwidget::handleclick(QListWidgetItem* item){
+    QJsonObject task = *(QJsonObject*)item->data(Qt::UserRole+1).data();
+    /*QString id = (*(QString*)item->data(Qt::UserRole+2).data());
 
     QFile jsonfile("./data/data.json");
     if (!jsonfile.open(QIODevice::ReadWrite)){
@@ -86,7 +76,7 @@ TODO: Try to make this work
     QJsonObject task = std::find_if(tasks.begin(),tasks.end(),[&id](QJsonValueRef a_){
                            QJsonObject a = a_.toObject();
                            return a["id"] == id;
-    })->toObject();
+    })->toObject();*/
     qDebug() << task;
     newTask edit(false,&task);
     edit.exec();
